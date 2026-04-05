@@ -10,6 +10,8 @@
     nav { background: #16213e; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: relative; }
     nav a { color: #e2e8f0; text-decoration: none; margin-left: 1rem; font-weight: 500; }
     nav a:hover { color: #fff; text-decoration: underline; }
+    nav .nav-logout { background: none; border: none; color: #e2e8f0; font: inherit; font-weight: 500; cursor: pointer; padding: 0; margin-left: 1rem; }
+    nav .nav-logout:hover { color: #fff; text-decoration: underline; }
     nav .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
     nav .nav-links { display: flex; align-items: center; }
     nav .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
@@ -17,7 +19,7 @@
       nav .hamburger { display: block; }
       nav .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; right: 0; background: #16213e; width: 100%; padding: 0.5rem 1.5rem 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; }
       nav .nav-links.open { display: flex; }
-      nav .nav-links a { margin: 0.4rem 0; margin-left: 0; padding: 0.75rem 0; font-size: 1.1rem; }
+      nav .nav-links a, nav .nav-links .nav-logout { margin: 0.4rem 0; margin-left: 0; padding: 0.75rem 0; font-size: 1.1rem; }
       table { font-size: 0.7rem; table-layout: fixed; width: 100%; word-wrap: break-word; }
       th, td { padding: 0.3rem 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       th { font-size: 0.6rem; letter-spacing: 0; }
@@ -61,15 +63,15 @@
         <a href="{% url 'dashboard' %}">Dashboard</a>
         <a href="{% url 'enter_score' %}">Enter Score</a>
         <a href="{% url 'leaderboard' %}">Leaderboard</a>
-        <form method="post" action="{% url 'logout' %}" style="display:inline;margin:0;padding:0;">
+        <form method="post" action="{% url 'logout' %}" style="display:block;margin:0;padding:0;">
           {% csrf_token %}
-          <button type="submit" style="background:none;border:none;color:#e2e8f0;font:inherit;font-weight:500;cursor:pointer;padding:0;margin-left:1rem;">Logout</button>
+          <button type="submit" class="nav-logout">Logout</button>
         </form>
       {% else %}
         <a href="{% url 'login' %}">Login</a>
         <a href="{% url 'signup' %}">Sign Up</a>
         <a href="{% url 'leaderboard' %}">Leaderboard</a>
-        <a href="{% url 'signup_qr' %}">QR Code</a>
+        <a href="{% url 'qr' %}">QR Code</a>
       {% endif %}
     </div>
   </nav>

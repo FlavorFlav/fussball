@@ -14,6 +14,6 @@
     {% endfor %}
     <button type="submit" class="btn">Login</button>
   </form>
-  <p style="margin-top:1rem;font-size:0.9rem;">No account yet? <a href="{% url 'signup' %}">Sign up</a></p>
+  <p style="margin-top:1rem;font-size:0.9rem;">No account yet? <a href="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">Sign up</a></p>
 </div>
 {% endblock %}

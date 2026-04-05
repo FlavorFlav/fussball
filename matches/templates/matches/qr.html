@@ -1,0 +1,10 @@
+{% extends "matches/base.html" %}
+{% block title %}QR Code{% endblock %}
+{% block content %}
+<div class="card qr-wrapper">
+  <h2>Scan to enter score</h2>
+  <p style="margin-bottom:1rem;color:#64748b;">Show this QR code so players can enter their scores.</p>
+  <img src="data:image/png;base64,{{ qr_b64 }}" alt="Enter Score QR Code">
+  <p style="margin-top:1rem;font-size:0.85rem;color:#94a3b8;">{{ enter_score_url }}</p>
+</div>
+{% endblock %}

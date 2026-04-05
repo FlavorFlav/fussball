@@ -17,7 +17,7 @@
   <h2>Recent Matches</h2>
   {% if matches %}
   <table>
-    <thead><tr><th>Date</th><th>Home</th><th>Score</th><th>Away</th></tr></thead>
+    <thead><tr><th>Date</th><th>Player</th><th>Score</th><th>Opponent</th><th></th></tr></thead>
     <tbody>
     {% for m in matches %}
       <tr>
@@ -25,6 +25,7 @@
         <td>{{ m.player_home }}</td>
         <td><strong class="{% if m.player_home == player %}{% if m.score_home > m.score_away %}result-win{% elif m.score_home < m.score_away %}result-loss{% endif %}{% else %}{% if m.score_away > m.score_home %}result-win{% elif m.score_away < m.score_home %}result-loss{% endif %}{% endif %}">{{ m.score_home }} - {{ m.score_away }}</strong></td>
         <td>{{ m.player_away }}</td>
+        <td><a href="{% url 'edit_match' m.id %}" title="Edit match" style="text-decoration:none;">✏️</a></td>
       </tr>
     {% endfor %}
     </tbody>
