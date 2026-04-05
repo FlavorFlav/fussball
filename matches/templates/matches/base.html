@@ -7,10 +7,22 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-    nav { background: #16213e; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    nav { background: #16213e; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: relative; }
     nav a { color: #e2e8f0; text-decoration: none; margin-left: 1rem; font-weight: 500; }
     nav a:hover { color: #fff; text-decoration: underline; }
     nav .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
+    nav .nav-links { display: flex; align-items: center; }
+    nav .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
+    @media (max-width: 640px) {
+      nav .hamburger { display: block; }
+      nav .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; right: 0; background: #16213e; width: 100%; padding: 0.5rem 1.5rem 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; }
+      nav .nav-links.open { display: flex; }
+      nav .nav-links a { margin: 0.4rem 0; margin-left: 0; padding: 0.75rem 0; font-size: 1.1rem; }
+      table { font-size: 0.7rem; table-layout: fixed; width: 100%; word-wrap: break-word; }
+      th, td { padding: 0.3rem 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      th { font-size: 0.6rem; letter-spacing: 0; }
+      .card { padding: 1rem; }
+    }
     .container { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
     .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.5rem; margin-bottom: 1.5rem; }
     .card h2 { margin-bottom: 1rem; color: #16213e; }
@@ -19,7 +31,8 @@
     th { background: #f8fafc; font-size: 0.85rem; text-transform: uppercase; color: #64748b; }
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.9rem; }
-    .form-group input, .form-group select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+    .form-group input, .form-group select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; font-family: inherit; }
+    .form-group input[type="date"] { -webkit-appearance: auto; appearance: auto; min-height: 2.75rem; font-size: 1rem; font-family: inherit; }
     .btn { display: inline-block; padding: 0.6rem 1.4rem; background: #0f3460; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; text-decoration: none; }
     .btn:hover { background: #16213e; }
     .btn-secondary { background: #64748b; }
@@ -42,12 +55,16 @@
 <body>
   <nav>
     <span class="brand">⚽ Fussball Tracker</span>
-    <div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
       {% if user.is_authenticated %}
         <a href="{% url 'dashboard' %}">Dashboard</a>
         <a href="{% url 'enter_score' %}">Enter Score</a>
         <a href="{% url 'leaderboard' %}">Leaderboard</a>
-        <a href="{% url 'logout' %}">Logout</a>
+        <form method="post" action="{% url 'logout' %}" style="display:inline;margin:0;padding:0;">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:none;color:#e2e8f0;font:inherit;font-weight:500;cursor:pointer;padding:0;margin-left:1rem;">Logout</button>
+        </form>
       {% else %}
         <a href="{% url 'login' %}">Login</a>
         <a href="{% url 'signup' %}">Sign Up</a>

@@ -15,7 +15,7 @@ from .models import Match, Player
 
 def signup_qr(request):
     """Display a QR code that links to the signup page."""
-    signup_url = request.build_absolute_uri("/signup/")
+    signup_url = "http://192.168.1.9:8000/signup/"
     img = qrcode.make(signup_url, box_size=8, border=2)
     buffer = BytesIO()
     img.save(buffer, format="PNG")
@@ -63,6 +63,8 @@ def enter_score(request):
             match.save()
             messages.success(request, "Match recorded!")
             return redirect("dashboard")
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = MatchForm(current_player=player)
     return render(request, "matches/enter_score.html", {"form": form})

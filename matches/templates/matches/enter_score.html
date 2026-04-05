@@ -3,16 +3,279 @@
 {% block content %}
 <div class="card">
   <h2>Record a Match</h2>
+  {% if form.non_field_errors %}
+    {% for error in form.non_field_errors %}
+      <div class="msg error">{{ error }}</div>
+    {% endfor %}
+  {% endif %}
   <form method="post">
     {% csrf_token %}
     {% for field in form %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {{ field.errors }}
+        {% if field.name == "played_at" %}
+          {# Hidden real input for form submission #}
+          <input type="hidden" name="played_at" id="id_played_at" value="{% if field.value %}{{ field.value }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+          {# Visible readonly field that opens the wheel picker on mobile #}
+          <input type="text" id="date-display" readonly
+                 value="{% if field.value %}{{ field.value }}{% else %}{% now 'Y-m-d' %}{% endif %}"
+                 placeholder="Select date"
+                 style="cursor:pointer; background:#fff;">
+          {{ field.errors }}
+        {% else %}
+          {{ field }}
+          {{ field.errors }}
+        {% endif %}
       </div>
     {% endfor %}
     <button type="submit" class="btn">Save Match</button>
+    <div id="score-error" class="msg error" style="display:none; margin-top:1rem;"></div>
   </form>
 </div>
+
+<script>
+(function() {
+  var homeInput = document.getElementById('id_score_home');
+  var awayInput = document.getElementById('id_score_away');
+  var errorDiv = document.getElementById('score-error');
+
+  function validateScore() {
+    var home = parseInt(homeInput.value);
+    var away = parseInt(awayInput.value);
+    if (isNaN(home) || isNaN(away)) { errorDiv.style.display = 'none'; return; }
+    var high = Math.max(home, away);
+    var low = Math.min(home, away);
+    var msg = '';
+    if (home === away) {
+      msg = 'Ties are not allowed.';
+    } else if (high < 10) {
+      msg = 'The winning score must be at least 10.';
+    } else if (low <= 8 && high !== 10) {
+      msg = 'When the losing score is 8 or less, the winning score must be exactly 10.';
+    } else if (low >= 9 && high !== low + 2) {
+      msg = 'At deuce (9+), the winner must lead by exactly 2.';
+    }
+    if (msg) {
+      errorDiv.textContent = msg;
+      errorDiv.style.display = 'block';
+    } else {
+      errorDiv.style.display = 'none';
+    }
+  }
+
+  homeInput.addEventListener('input', validateScore);
+  awayInput.addEventListener('input', validateScore);
+})();
+</script>
+
+{# Spinner wheel date picker overlay for mobile #}
+<style>
+  .picker-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4);
+    z-index:1000; align-items:flex-end; justify-content:center;
+  }
+  .picker-overlay.open { display:flex; }
+  .picker-sheet {
+    background:#fff; width:100%; max-width:500px; border-radius:16px 16px 0 0;
+    padding:0; overflow:hidden; animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .picker-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:0.75rem 1rem; border-bottom:1px solid #e2e8f0;
+  }
+  .picker-header button {
+    background:none; border:none; font-size:1rem; cursor:pointer; padding:0.25rem 0.5rem;
+  }
+  .picker-header .cancel { color:#64748b; }
+  .picker-header .done { color:#0f3460; font-weight:700; }
+  .picker-wheel-wrap {
+    height:200px; overflow:hidden; position:relative;
+  }
+  .picker-wheel {
+    height:100%; overflow-y:scroll; scroll-snap-type:y mandatory;
+    -webkit-overflow-scrolling:touch; text-align:center;
+  }
+  .picker-wheel .spacer { height:80px; }
+  .picker-wheel .item {
+    height:40px; line-height:40px; scroll-snap-align:center;
+    font-size:1.1rem; color:#94a3b8; transition: color 0.1s, font-weight 0.1s;
+  }
+  .picker-wheel .item.selected { color:#1a1a2e; font-weight:700; }
+  .picker-highlight {
+    position:absolute; top:80px; left:0; right:0; height:40px;
+    border-top:2px solid #0f3460; border-bottom:2px solid #0f3460;
+    pointer-events:none; z-index:1;
+  }
+  /* On desktop (wide screens) fall back to native date input */
+  @media (min-width: 641px) {
+    #date-display { display: none; }
+    .picker-overlay { display: none !important; }
+  }
+</style>
+
+<div class="picker-overlay" id="picker-overlay">
+  <div class="picker-sheet">
+    <div class="picker-header">
+      <button type="button" class="cancel" id="picker-cancel">Cancel</button>
+      <span style="font-weight:600;">Pick Date</span>
+      <button type="button" class="done" id="picker-done">Done</button>
+    </div>
+    <div class="picker-wheel-wrap">
+      <div class="picker-highlight"></div>
+      <div class="picker-wheel" id="picker-wheel"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var isDesktop = window.matchMedia('(min-width:641px)').matches;
+  var hiddenInput = document.getElementById('id_played_at');
+  var displayInput = document.getElementById('date-display');
+
+  // On desktop, swap back to a styled date input showing dd.mm.yyyy
+  if (isDesktop) {
+    var now = new Date();
+    var todayStr = now.toISOString().split('T')[0];
+    var todayDisplay = ('0'+now.getDate()).slice(-2)+'.'+('0'+(now.getMonth()+1)).slice(-2)+'.'+now.getFullYear();
+    var parent = hiddenInput.parentNode;
+    // Keep hidden input for form submission in YYYY-MM-DD format
+    hiddenInput.value = todayStr;
+    // Remove the mobile display input
+    displayInput.remove();
+    // Create visible text input showing dd.mm.yyyy
+    var visInput = document.createElement('input');
+    visInput.type = 'text';
+    visInput.id = 'date-display-desktop';
+    visInput.value = todayDisplay;
+    visInput.readOnly = true;
+    visInput.style.fontFamily = 'inherit';
+    visInput.style.cursor = 'pointer';
+    visInput.style.background = '#fff';
+    // Create a hidden native date input to trigger the browser picker
+    var pickerInput = document.createElement('input');
+    pickerInput.type = 'date';
+    pickerInput.max = todayStr;
+    pickerInput.value = todayStr;
+    pickerInput.style.position = 'absolute';
+    pickerInput.style.opacity = '0';
+    pickerInput.style.width = '0';
+    pickerInput.style.height = '0';
+    pickerInput.style.overflow = 'hidden';
+    var label = parent.querySelector('label');
+    if (label && label.nextSibling) {
+      parent.insertBefore(visInput, label.nextSibling);
+      parent.insertBefore(pickerInput, visInput.nextSibling);
+    } else {
+      parent.appendChild(visInput);
+      parent.appendChild(pickerInput);
+    }
+    visInput.addEventListener('click', function() {
+      pickerInput.showPicker ? pickerInput.showPicker() : pickerInput.click();
+    });
+    pickerInput.addEventListener('change', function() {
+      var parts = pickerInput.value.split('-');
+      hiddenInput.value = pickerInput.value;
+      visInput.value = parts[2]+'.'+parts[1]+'.'+parts[0];
+    });
+    return;
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var overlay = document.getElementById('picker-overlay');
+  var wheel = document.getElementById('picker-wheel');
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var dates = [];
+  var selectedIdx = 0;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  // Build list of dates: oldest at top, today at bottom
+  for (var i = 90; i >= 0; i--) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - i);
+    dates.push({
+      date: d,
+      value: d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()),
+      label: days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear()
+    });
+  }
+
+  // Find initial selection (default to today = last item)
+  var initVal = hiddenInput.value || dates[dates.length - 1].value;
+  selectedIdx = dates.length - 1;
+  for (var j = 0; j < dates.length; j++) {
+    if (dates[j].value === initVal) { selectedIdx = j; break; }
+  }
+
+  function buildWheel() {
+    wheel.innerHTML = '';
+    var topSpacer = document.createElement('div');
+    topSpacer.className = 'spacer';
+    wheel.appendChild(topSpacer);
+    dates.forEach(function(item, i) {
+      var div = document.createElement('div');
+      div.className = 'item' + (i === selectedIdx ? ' selected' : '');
+      div.textContent = item.label;
+      div.dataset.idx = i;
+      wheel.appendChild(div);
+    });
+    var bottomSpacer = document.createElement('div');
+    bottomSpacer.className = 'spacer';
+    wheel.appendChild(bottomSpacer);
+    wheel.scrollTop = selectedIdx * 40;
+  }
+
+  function getSelectedFromScroll() {
+    var idx = Math.round(wheel.scrollTop / 40);
+    idx = Math.max(0, Math.min(idx, dates.length - 1));
+    var items = wheel.querySelectorAll('.item');
+    items.forEach(function(el, i) { el.classList.toggle('selected', i === idx); });
+    return idx;
+  }
+
+  var scrollTimeout;
+  wheel.addEventListener('scroll', function() {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(function() {
+      selectedIdx = getSelectedFromScroll();
+    }, 80);
+  });
+
+  // Set initial display
+  displayInput.value = dates[selectedIdx].label;
+
+  displayInput.addEventListener('click', function() {
+    // Re-sync selectedIdx from the current hidden input value
+    var curVal = hiddenInput.value;
+    for (var k = 0; k < dates.length; k++) {
+      if (dates[k].value === curVal) { selectedIdx = k; break; }
+    }
+    buildWheel();
+    overlay.classList.add('open');
+    // Defer scroll so the browser has laid out the content
+    requestAnimationFrame(function() {
+      wheel.scrollTop = selectedIdx * 40;
+    });
+  });
+
+  document.getElementById('picker-cancel').addEventListener('click', function() {
+    overlay.classList.remove('open');
+  });
+
+  document.getElementById('picker-done').addEventListener('click', function() {
+    selectedIdx = getSelectedFromScroll();
+    hiddenInput.value = dates[selectedIdx].value;
+    displayInput.value = dates[selectedIdx].label;
+    overlay.classList.remove('open');
+  });
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+})();
+</script>
 {% endblock %}

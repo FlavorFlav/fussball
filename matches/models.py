@@ -1,4 +1,6 @@
 import uuid
+from datetime import date
+
 from django.conf import settings
 from django.db import models
 
@@ -49,7 +51,7 @@ class Match(models.Model):
     player_away = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="away_matches")
     score_home = models.PositiveIntegerField()
     score_away = models.PositiveIntegerField()
-    played_at = models.DateTimeField(auto_now_add=True)
+    played_at = models.DateField(default=date.today)
 
     class Meta:
         ordering = ["-played_at"]
