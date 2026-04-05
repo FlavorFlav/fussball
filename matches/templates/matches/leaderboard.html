@@ -1,0 +1,24 @@
+{% extends "matches/base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Leaderboard</h2>
+  {% if players %}
+  <table>
+    <thead><tr><th>#</th><th>Player</th><th>Played</th><th>Wins</th></tr></thead>
+    <tbody>
+    {% for p in players %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ p.display_name }}</td>
+        <td>{{ p.total_matches }}</td>
+        <td>{{ p.total_wins }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b;">No players signed up yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

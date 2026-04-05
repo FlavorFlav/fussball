@@ -1,0 +1,47 @@
+{% extends "matches/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>{{ player.display_name }}'s Stats</h2>
+  <div class="stat-grid">
+    <div class="stat"><div class="value">{{ player.total_matches }}</div><div class="label">Played</div></div>
+    <div class="stat"><div class="value">{{ player.wins }}</div><div class="label">Wins</div></div>
+    <div class="stat"><div class="value">{{ player.losses }}</div><div class="label">Losses</div></div>
+    <div class="stat"><div class="value">{{ player.draws }}</div><div class="label">Draws</div></div>
+    <div class="stat"><div class="value">{{ player.goals_scored }}</div><div class="label">Goals For</div></div>
+    <div class="stat"><div class="value">{{ player.goals_conceded }}</div><div class="label">Goals Against</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent Matches</h2>
+  {% if matches %}
+  <table>
+    <thead><tr><th>Date</th><th>Home</th><th>Score</th><th>Away</th><th>Result</th></tr></thead>
+    <tbody>
+    {% for m in matches %}
+      <tr>
+        <td>{{ m.played_at|date:"M d, H:i" }}</td>
+        <td>{{ m.player_home }}</td>
+        <td><strong>{{ m.score_home }} - {{ m.score_away }}</strong></td>
+        <td>{{ m.player_away }}</td>
+        <td>
+          {% if m.player_home == player %}
+            {% if m.score_home > m.score_away %}<span class="result-win">Win</span>
+            {% elif m.score_home < m.score_away %}<span class="result-loss">Loss</span>
+            {% else %}<span class="result-draw">Draw</span>{% endif %}
+          {% else %}
+            {% if m.score_away > m.score_home %}<span class="result-win">Win</span>
+            {% elif m.score_away < m.score_home %}<span class="result-loss">Loss</span>
+            {% else %}<span class="result-draw">Draw</span>{% endif %}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b;">No matches yet. <a href="{% url 'enter_score' %}">Record your first match!</a></p>
+  {% endif %}
+</div>
+{% endblock %}

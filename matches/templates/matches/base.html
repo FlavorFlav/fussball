@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Fussball{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+    nav { background: #16213e; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    nav a { color: #e2e8f0; text-decoration: none; margin-left: 1rem; font-weight: 500; }
+    nav a:hover { color: #fff; text-decoration: underline; }
+    nav .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
+    .container { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { margin-bottom: 1rem; color: #16213e; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f8fafc; font-size: 0.85rem; text-transform: uppercase; color: #64748b; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+    .form-group input, .form-group select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+    .btn { display: inline-block; padding: 0.6rem 1.4rem; background: #0f3460; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; text-decoration: none; }
+    .btn:hover { background: #16213e; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .stat { text-align: center; }
+    .stat .value { font-size: 2rem; font-weight: 700; color: #0f3460; }
+    .stat .label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+    .msg { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+    .msg.success { background: #dcfce7; color: #166534; }
+    .msg.error { background: #fee2e2; color: #991b1b; }
+    .errorlist { list-style: none; color: #dc2626; font-size: 0.85rem; margin-top: 0.2rem; }
+    .qr-wrapper { text-align: center; }
+    .qr-wrapper img { max-width: 280px; }
+    .result-win { color: #16a34a; font-weight: 600; }
+    .result-loss { color: #dc2626; font-weight: 600; }
+    .result-draw { color: #d97706; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">⚽ Fussball Tracker</span>
+    <div>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'enter_score' %}">Enter Score</a>
+        <a href="{% url 'leaderboard' %}">Leaderboard</a>
+        <a href="{% url 'logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'signup' %}">Sign Up</a>
+        <a href="{% url 'leaderboard' %}">Leaderboard</a>
+        <a href="{% url 'signup_qr' %}">QR Code</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>
